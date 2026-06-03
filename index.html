@@ -50,7 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-item:last-child{border-bottom:none;}
 .news-title{font-size:13px;font-weight:500;line-height:1.4;}
 .news-date{font-size:11px;color:var(--muted);margin-top:2px;}
-.news-loading{color:var(--muted);font-size:13px;padding:12px 0;}
+.msg{color:var(--muted);font-size:13px;padding:12px 0;}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -58,7 +58,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <body>
 <div class="header">
   <div>
-    <div class="greeting" id="greeting">Good morning, Bret 👋</div>
+    <div class="greeting" id="greeting">Hey Bret 👋</div>
     <div class="datetime" id="datetime"></div>
   </div>
   <button class="refresh-btn" onclick="loadAll()">↻</button>
@@ -66,7 +66,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="grid">
   <div class="card">
     <div class="card-title">☀️ Weather · Tampa</div>
-    <div id="weather-content"><div class="news-loading"><span class="spinner"></span>Loading…</div></div>
+    <div id="weather-content"><div class="msg"><span class="spinner"></span>Loading…</div></div>
   </div>
   <div class="card">
     <div class="card-title">⚡ Quick Links</div>
@@ -92,25 +92,87 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="news-tab" onclick="switchTab('lightning',this)">⚡ Lightning</button>
       <button class="news-tab" onclick="switchTab('manutd',this)">🔴 Man Utd</button>
     </div>
-    <div id="news-content"><div class="news-loading"><span class="spinner"></span>Loading…</div></div>
+    <div id="news-content"><div class="msg"><span class="spinner"></span>Loading…</div></div>
   </div>
 </div>
 <script>
-function updateClock(){const n=new Date(),h=n.getHours(),g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';document.getElementById('greeting').textContent=g+', Bret 👋';document.getElementById('datetime').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})+' · '+n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
+function updateClock(){
+  const n=new Date(),h=n.getHours();
+  const g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  document.getElementById('greeting').textContent=g+', Bret 👋';
+  document.getElementById('datetime').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})+' · '+n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
 updateClock();setInterval(updateClock,30000);
 
-async function loadWeather(){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=27.9506&longitude=-82.4572&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=1');const d=await r.json();const t=Math.round(d.current.temperature_2m),c=d.current.weathercode,hi=Math.round(d.daily.temperature_2m_max[0]),lo=Math.round(d.daily.temperature_2m_min[0]),w=Math.round(d.current.windspeed_10m),hu=d.current.relative_humidity_2m;document.getElementById('weather-content').innerHTML=`<div class="weather-main"><span class="weather-icon">${wIcon(c)}</span><div><div class="weather-temp">${t}°</div><div class="weather-desc">${wDesc(c)}</div></div></div><div class="weather-details"><span>↑${hi}° ↓${lo}°</span><span>💨 ${w}mph</span><span>💧 ${hu}%</span></div>`;}catch(e){document.getElementById('weather-content').innerHTML='<div class="news-loading">Weather unavailable</div>';}}
-function wIcon(c){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=48)return'🌫️';if(c<=67)return'🌧️';if(c<=77)return'❄️';if(c<=82)return'🌧️';if(c<=99)return'⛈️';return'🌡️';}
-function wDesc(c){if(c===0)return'Clear sky';if(c<=2)return'Partly cloudy';if(c<=3)return'Overcast';if(c<=48)return'Foggy';if(c<=67)return'Rainy';if(c<=77)return'Snowy';if(c<=82)return'Rain showers';if(c<=99)return'Thunderstorm';return'Unknown';}
+async function tFetch(url,ms=7000){
+  const c=new AbortController();
+  const id=setTimeout(()=>c.abort(),ms);
+  try{const r=await fetch(url,{signal:c.signal});clearTimeout(id);return r;}
+  catch(e){clearTimeout(id);throw e;}
+}
+
+async function loadWeather(){
+  const el=document.getElementById('weather-content');
+  try{
+    const r=await tFetch('https://api.open-meteo.com/v1/forecast?latitude=27.9506&longitude=-82.4572&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=1');
+    const d=await r.json();
+    const t=Math.round(d.current.temperature_2m),code=d.current.weathercode;
+    const hi=Math.round(d.daily.temperature_2m_max[0]),lo=Math.round(d.daily.temperature_2m_min[0]);
+    const w=Math.round(d.current.windspeed_10m),hu=d.current.relative_humidity_2m;
+    el.innerHTML=`<div class="weather-main"><span class="weather-icon">${wIcon(code)}</span><div><div class="weather-temp">${t}°</div><div class="weather-desc">${wDesc(code)}</div></div></div><div class="weather-details"><span>↑${hi}° ↓${lo}°</span><span>💨 ${w}mph</span><span>💧 ${hu}%</span></div>`;
+  }catch(e){el.innerHTML='<div class="msg">Tap ↻ to load weather</div>';}
+}
+function wIcon(c){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=48)return'🌫️';if(c<=67)return'🌧️';if(c<=77)return'❄️';if(c<=99)return'⛈️';return'🌡️';}
+function wDesc(c){if(c===0)return'Clear sky';if(c<=2)return'Partly cloudy';if(c<=3)return'Overcast';if(c<=48)return'Foggy';if(c<=67)return'Rainy';if(c<=77)return'Snowy';if(c<=99)return'Thunderstorm';return'Unknown';}
 
 let tasks=JSON.parse(localStorage.getItem('bret_tasks')||'[]');
 function saveTasks(){localStorage.setItem('bret_tasks',JSON.stringify(tasks));}
-function renderTasks(){const l=document.getElementById('task-list');if(!tasks.length){l.innerHTML='<div class="no-tasks">No tasks — you\'re all caught up 🎉</div>';return;}l.innerHTML=tasks.map((t,i)=>`<div class="task-item"><div class="task-check ${t.done?'done':''}" onclick="toggleTask(${i})">${t.done?'✓':''}</div><span class="task-text ${t.done?'done':''}">${t.text}</span><span class="task-del" onclick="deleteTask(${i})">×</span></div>`).join('');}
+function renderTasks(){
+  const l=document.getElementById('task-list');
+  if(!tasks.length){l.innerHTML='<div class="no-tasks">No tasks — you\'re all caught up 🎉</div>';return;}
+  l.innerHTML=tasks.map((t,i)=>`<div class="task-item"><div class="task-check ${t.done?'done':''}" onclick="toggleTask(${i})">${t.done?'✓':''}</div><span class="task-text ${t.done?'done':''}">${t.text}</span><span class="task-del" onclick="deleteTask(${i})">×</span></div>`).join('');
+}
 function addTask(){const i=document.getElementById('task-input'),t=i.value.trim();if(!t)return;tasks.unshift({text:t,done:false});saveTasks();renderTasks();i.value='';}
 function toggleTask(i){tasks[i].done=!tasks[i].done;saveTasks();renderTasks();}
 function deleteTask(i){tasks.splice(i,1);saveTasks();renderTasks();}
 renderTasks();
 
 const cache={};let activeTab='eagles';
-const SOURCES={eagles:{url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.philadelphiaeagles.com%2Frss%2Fnews'},lightning:{url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nhl.com%2Frss%2Fnews.xml%3FteamId%3D14'},manutd:{url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.manutd.com%2Fen%2Fnews%2Frss-feeds%2Ffirst-team-news'}};
-async function loadNews(team){if(cache[team])return cache[team];try{const r=await fetch(SOURCES[team].url);const d=await r.json();if(d.items&&d.items.length){cache[team]=d.items.slice(0,7).map(i=>({title:i.title,url:i.link||i.url,date:i.pubDate?new Date(i.pubDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'' }));return cache[team];}}catch(e)
+const FEED={
+  eagles:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.philadelphiaeagles.com%2Frss%2Fnews',
+  lightning:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nhl.com%2Frss%2Fnews.xml%3FteamId%3D14',
+  manutd:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.manutd.com%2Fen%2Fnews%2Frss-feeds%2Ffirst-team-news'
+};
+async function loadNews(team){
+  if(cache[team])return cache[team];
+  try{
+    const r=await tFetch(FEED[team]);
+    const d=await r.json();
+    if(d.items&&d.items.length){
+      cache[team]=d.items.slice(0,7).map(i=>({title:i.title,url:i.link||i.url,date:i.pubDate?new Date(i.pubDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}));
+      return cache[team];
+    }
+  }catch(e){}
+  return null;
+}
+async function switchTab(team,btn){
+  document.querySelectorAll('.news-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');activeTab=team;renderNews(team);
+}
+async function renderNews(team){
+  const el=document.getElementById('news-content');
+  el.innerHTML='<div class="msg"><span class="spinner"></span>Loading…</div>';
+  const items=await loadNews(team);
+  if(!items){el.innerHTML='<div class="msg">Could not load — tap ↻ to retry</div>';return;}
+  el.innerHTML=items.map(i=>`<div class="news-item" onclick="window.open('${i.url}','_blank')"><div class="news-title">${i.title}</div>${i.date?`<div class="news-date">${i.date}</div>`:''}</div>`).join('');
+}
+function loadAll(){
+  loadWeather();
+  cache.eagles=null;cache.lightning=null;cache.manutd=null;
+  renderNews(activeTab);
+}
+loadWeather();
+renderNews('eagles');
+</script>
+</body>
+</html>
