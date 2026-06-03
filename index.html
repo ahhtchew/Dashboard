@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-title" content="Bret's Dashboard">
 <meta name="theme-color" content="#0f172a">
 <link rel="manifest" href="manifest.json">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <title>Bret's Dashboard</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--card2:#243044;--accent:#3b82f6;--text:#f1f5f9;--muted:#94a3b8;--border:#334155;--green:#22c55e;--yellow:#f59e0b;}
@@ -31,8 +30,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .link-btn{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:4px;}
 .link-btn .icon{font-size:22px;}
 .link-btn .label{font-size:10px;color:var(--muted);}
-.task-input-row{display:flex;gap:6px;margin-bottom:10px;}
-.task-input{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;outline:none;}
+.task-input-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.task-input{flex:1;min-width:120px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;outline:none;}
 .task-input::placeholder{color:var(--muted);}
 .add-btn{background:var(--accent);border:none;border-radius:8px;color:white;padding:7px 12px;font-size:16px;cursor:pointer;}
 .task-list{max-height:180px;overflow-y:auto;}
@@ -43,9 +42,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .task-text{flex:1;}
 .task-text.done{text-decoration:line-through;color:var(--muted);}
 .task-del{color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;}
+.task-time{font-size:11px;color:var(--accent);margin-left:4px;white-space:nowrap;}
 .no-tasks{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;}
-.task-time{font-size:11px;color:var(--accent);margin-left:4px;}
-.time-picker{background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:3px 6px;margin-left:4px;}
+.time-picker{background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:3px 6px;}
 .notif-bar{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;}
 .notif-bar button{background:var(--accent);border:none;border-radius:6px;color:white;padding:4px 10px;font-size:11px;cursor:pointer;}
 .news-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
@@ -88,7 +87,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="notif-bar"></div>
     <div class="task-input-row">
       <input class="task-input" id="task-input" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addTask()">
-      <input type="time" class="time-picker" id="task-time" title="Set reminder time">
+      <input type="datetime-local" class="time-picker" id="task-time" title="Set reminder date & time">
       <button class="add-btn" onclick="addTask()">+</button>
     </div>
     <div class="task-list" id="task-list"></div>
@@ -145,20 +144,20 @@ function initNotif(){
 function requestNotif(){
   Notification.requestPermission().then(p=>{
     if(p==='granted'){notifGranted=true;localStorage.setItem('notif_granted','true');document.getElementById('notif-bar').innerHTML='';}
-    else{document.getElementById('notif-bar').innerHTML='<div class="notif-bar">Notifications blocked in Safari Settings</div>';}
+    else{document.getElementById('notif-bar').innerHTML='<div class="notif-bar">Notifications blocked — enable in Safari Settings</div>';}
   });
 }
-function scheduleNotif(text,timeStr){
-  if(!notifGranted||!timeStr)return;
-  const[h,m]=timeStr.split(':').map(Number);
-  const now=new Date();
-  const fire=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
-  if(fire<=now)fire.setDate(fire.getDate()+1);
-  const delay=fire-now;
+function scheduleNotif(text,datetimeStr){
+  if(!notifGranted||!datetimeStr)return;
+  const fire=new Date(datetimeStr);
+  const delay=fire-Date.now();
+  if(delay<=0)return;
   setTimeout(()=>{
     if(Notification.permission==='granted')new Notification('Task Reminder',{body:text,icon:'https://fav.farm/✅'});
   },delay);
 }
+
+function fmtDT(s){const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
 
 // Tasks
 let tasks=JSON.parse(localStorage.getItem('bret_tasks')||'[]');
@@ -166,7 +165,7 @@ function saveTasks(){localStorage.setItem('bret_tasks',JSON.stringify(tasks));}
 function renderTasks(){
   const l=document.getElementById('task-list');
   if(!tasks.length){l.innerHTML='<div class="no-tasks">No tasks — you\'re all caught up 🎉</div>';return;}
-  l.innerHTML=tasks.map((t,i)=>`<div class="task-item"><div class="task-check ${t.done?'done':''}" onclick="toggleTask(${i})">${t.done?'✓':''}</div><span class="task-text ${t.done?'done':''}">${t.text}</span>${t.time?`<span class="task-time">⏰ ${t.time}</span>`:''}<span class="task-del" onclick="deleteTask(${i})">×</span></div>`).join('');
+  l.innerHTML=tasks.map((t,i)=>`<div class="task-item"><div class="task-check ${t.done?'done':''}" onclick="toggleTask(${i})">${t.done?'✓':''}</div><span class="task-text ${t.done?'done':''}">${t.text}</span>${t.time?`<span class="task-time">⏰ ${fmtDT(t.time)}</span>`:''}<span class="task-del" onclick="deleteTask(${i})">×</span></div>`).join('');
 }
 function addTask(){
   const i=document.getElementById('task-input'),t=i.value.trim();
