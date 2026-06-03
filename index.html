@@ -275,7 +275,7 @@ async function fetchCalEvents(){
         ?dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · '+dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
         :dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       return `<div class="cal-event"><div class="cal-time">${timeStr}</div><div class="cal-title">${ev.summary||'(No title)'}</div></div>`;
-    }).join('')+'<button class="cal-btn secondary" onclick="calSignIn()">Refresh</button>';
+    }).join('');
   }catch(e){showCalError('Could not load — tap Retry');}
 }
 window.addEventListener('load',calInit);
