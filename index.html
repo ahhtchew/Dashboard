@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Bret's Dashboard">
 <meta name="theme-color" content="#0f172a">
 <link rel="manifest" href="manifest.json">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <title>Bret's Dashboard</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--card2:#243044;--accent:#3b82f6;--text:#f1f5f9;--muted:#94a3b8;--border:#334155;--green:#22c55e;}
@@ -51,6 +52,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-title{font-size:13px;font-weight:500;line-height:1.4;}
 .news-date{font-size:11px;color:var(--muted);margin-top:2px;}
 .msg{color:var(--muted);font-size:13px;padding:12px 0;}
+.cal-event{padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.cal-event:last-child{border-bottom:none;}
+.cal-time{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:2px;}
+.cal-title{font-weight:500;line-height:1.4;}
+.cal-btn{background:var(--accent);border:none;border-radius:8px;color:white;padding:8px 14px;font-size:13px;cursor:pointer;width:100%;margin-top:4px;}
+.cal-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted);margin-top:6px;}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -76,6 +83,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <a class="link-btn" href="https://zapier.com" target="_blank"><span class="icon">⚡</span><span class="label">Zapier</span></a>
       <a class="link-btn" href="https://claude.ai" target="_blank"><span class="icon">🤖</span><span class="label">Claude</span></a>
     </div>
+  </div>
+  <div class="card full">
+    <div class="card-title">📅 Calendar — Next 7 Days</div>
+    <div id="cal-content"><div class="msg">Loading…</div></div>
   </div>
   <div class="card full">
     <div class="card-title">✅ Tasks</div>
@@ -104,10 +115,10 @@ function updateClock(){
 }
 updateClock();setInterval(updateClock,30000);
 
-async function tFetch(url,ms=7000){
+async function tFetch(url,ms=7000,headers={}){
   const c=new AbortController();
   const id=setTimeout(()=>c.abort(),ms);
-  try{const r=await fetch(url,{signal:c.signal});clearTimeout(id);return r;}
+  try{const r=await fetch(url,{signal:c.signal,headers});clearTimeout(id);return r;}
   catch(e){clearTimeout(id);throw e;}
 }
 
@@ -171,6 +182,57 @@ function loadAll(){
   cache.eagles=null;cache.lightning=null;cache.manutd=null;
   renderNews(activeTab);
 }
+
+const CAL_CLIENT_ID='7876753626-poa6fhjh6h9e08vrhe8lveoe455fthbv.apps.googleusercontent.com';
+const CAL_SCOPE='https://www.googleapis.com/auth/calendar.readonly';
+let calToken=localStorage.getItem('cal_token');
+let calExpiry=parseInt(localStorage.getItem('cal_expiry')||'0');
+let tokenClient;
+
+function calInit(){
+  if(typeof google==='undefined'){setTimeout(calInit,500);return;}
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:CAL_CLIENT_ID,
+    scope:CAL_SCOPE,
+    callback:(resp)=>{
+      if(resp.error){showCalError('Auth failed: '+resp.error);return;}
+      calToken=resp.access_token;
+      calExpiry=Date.now()+(resp.expires_in*1000);
+      localStorage.setItem('cal_token',calToken);
+      localStorage.setItem('cal_expiry',calExpiry);
+      fetchCalEvents();
+    }
+  });
+  if(calToken&&Date.now()<calExpiry){fetchCalEvents();}
+  else{showCalConnect();}
+}
+function showCalConnect(){
+  document.getElementById('cal-content').innerHTML=`<button class="cal-btn" onclick="calSignIn()">Connect Google Calendar</button>`;
+}
+function showCalError(msg){
+  document.getElementById('cal-content').innerHTML=`<div class="msg">${msg}</div><button class="cal-btn secondary" onclick="calSignIn()">Retry</button>`;
+}
+function calSignIn(){tokenClient.requestAccessToken();}
+async function fetchCalEvents(){
+  const el=document.getElementById('cal-content');
+  el.innerHTML='<div class="msg"><span class="spinner"></span>Loading…</div>';
+  try{
+    const now=new Date().toISOString();
+    const end=new Date(Date.now()+7*24*60*60*1000).toISOString();
+    const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=10`,8000,{'Authorization':'Bearer '+calToken});
+    const d=await r.json();
+    if(!d.items||d.items.length===0){el.innerHTML='<div class="msg">No upcoming events 🎉</div><button class="cal-btn secondary" onclick="calSignIn()">Refresh</button>';return;}
+    el.innerHTML=d.items.map(ev=>{
+      const start=ev.start.dateTime||ev.start.date;
+      const dt=new Date(start);
+      const isAllDay=!ev.start.dateTime;
+      const timeStr=isAllDay?dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+' · '+dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="cal-event"><div class="cal-time">${timeStr}</div><div class="cal-title">${ev.summary||'(No title)'}</div></div>`;
+    }).join('')+'<button class="cal-btn secondary" onclick="calSignIn()">Refresh</button>';
+  }catch(e){showCalError('Could not load events');}
+}
+
+window.addEventListener('load',calInit);
 loadWeather();
 renderNews('eagles');
 </script>
