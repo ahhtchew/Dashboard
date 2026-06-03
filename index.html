@@ -1,41 +1,116 @@
-Good evening, Bret 👋
-Wednesday, June 3, 2026 · 05:21 PM
-↻
-☀️ Weather · Tampa
-☁️
-84°
-Overcast
-↑86° ↓73°
-💨 15mph
-💧 59%
-⚡ Quick Links
-📅
-Calendar
-📧
-Gmail
-⚡
-Zapier
-🤖
-Claude
-✅ Tasks
-Add a task…
-+
-No tasks — you're all caught up 🎉
-📰 News
-🦅 Eagles
-⚡ Lightning
-🔴 Man Utd
-Spadaro: You think DeVonta Smith's approach is different? Think again
-Jun 2
-Eagles sign RB Elijah Mitchell
-Jun 2
-Spadaro: Why did the Eagles agree to trade A.J. Brown? Howie Roseman explains
-Jun 2
-Eagles agree to trade A.J. Brown to the Patriots 
-Jun 1
-Eagles sign WR Samori Toure
-Jun 1
-Jalen Hurts: 'I always want to do whatever it takes to win'
-May 28
-Eagles sign WR Brandon Hayes
-May 27
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bret's Dashboard">
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.json">
+<title>Bret's Dashboard</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--card2:#243044;--accent:#3b82f6;--text:#f1f5f9;--muted:#94a3b8;--border:#334155;--green:#22c55e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px 16px 32px;}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.greeting{font-size:22px;font-weight:700;}
+.datetime{font-size:13px;color:var(--muted);margin-top:2px;}
+.refresh-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:18px;cursor:pointer;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.card{background:var(--card);border-radius:14px;padding:14px;border:1px solid var(--border);}
+.card.full{grid-column:1/-1;}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;}
+.weather-main{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.weather-icon{font-size:36px;}
+.weather-temp{font-size:36px;font-weight:700;}
+.weather-desc{font-size:13px;color:var(--muted);}
+.weather-details{display:flex;gap:12px;margin-top:8px;font-size:12px;color:var(--muted);}
+.links-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.link-btn{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.link-btn .icon{font-size:22px;}
+.link-btn .label{font-size:10px;color:var(--muted);}
+.task-input-row{display:flex;gap:6px;margin-bottom:10px;}
+.task-input{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;outline:none;}
+.task-input::placeholder{color:var(--muted);}
+.add-btn{background:var(--accent);border:none;border-radius:8px;color:white;padding:7px 12px;font-size:16px;cursor:pointer;}
+.task-list{max-height:180px;overflow-y:auto;}
+.task-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.task-item:last-child{border-bottom:none;}
+.task-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.task-check.done{background:var(--green);border-color:var(--green);}
+.task-text{flex:1;}
+.task-text.done{text-decoration:line-through;color:var(--muted);}
+.task-del{color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;}
+.no-tasks{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;}
+.news-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.news-tab{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);}
+.news-tab.active{background:var(--accent);color:white;border-color:var(--accent);}
+.news-item{padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.news-item:last-child{border-bottom:none;}
+.news-title{font-size:13px;font-weight:500;line-height:1.4;}
+.news-date{font-size:11px;color:var(--muted);margin-top:2px;}
+.news-loading{color:var(--muted);font-size:13px;padding:12px 0;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="greeting" id="greeting">Good morning, Bret 👋</div>
+    <div class="datetime" id="datetime"></div>
+  </div>
+  <button class="refresh-btn" onclick="loadAll()">↻</button>
+</div>
+<div class="grid">
+  <div class="card">
+    <div class="card-title">☀️ Weather · Tampa</div>
+    <div id="weather-content"><div class="news-loading"><span class="spinner"></span>Loading…</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚡ Quick Links</div>
+    <div class="links-grid">
+      <a class="link-btn" href="https://calendar.google.com" target="_blank"><span class="icon">📅</span><span class="label">Calendar</span></a>
+      <a class="link-btn" href="https://mail.google.com" target="_blank"><span class="icon">📧</span><span class="label">Gmail</span></a>
+      <a class="link-btn" href="https://zapier.com" target="_blank"><span class="icon">⚡</span><span class="label">Zapier</span></a>
+      <a class="link-btn" href="https://claude.ai" target="_blank"><span class="icon">🤖</span><span class="label">Claude</span></a>
+    </div>
+  </div>
+  <div class="card full">
+    <div class="card-title">✅ Tasks</div>
+    <div class="task-input-row">
+      <input class="task-input" id="task-input" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addTask()">
+      <button class="add-btn" onclick="addTask()">+</button>
+    </div>
+    <div class="task-list" id="task-list"></div>
+  </div>
+  <div class="card full">
+    <div class="card-title">📰 News</div>
+    <div class="news-tabs">
+      <button class="news-tab active" onclick="switchTab('eagles',this)">🦅 Eagles</button>
+      <button class="news-tab" onclick="switchTab('lightning',this)">⚡ Lightning</button>
+      <button class="news-tab" onclick="switchTab('manutd',this)">🔴 Man Utd</button>
+    </div>
+    <div id="news-content"><div class="news-loading"><span class="spinner"></span>Loading…</div></div>
+  </div>
+</div>
+<script>
+function updateClock(){const n=new Date(),h=n.getHours(),g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';document.getElementById('greeting').textContent=g+', Bret 👋';document.getElementById('datetime').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})+' · '+n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
+updateClock();setInterval(updateClock,30000);
+
+async function loadWeather(){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=27.9506&longitude=-82.4572&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=1');const d=await r.json();const t=Math.round(d.current.temperature_2m),c=d.current.weathercode,hi=Math.round(d.daily.temperature_2m_max[0]),lo=Math.round(d.daily.temperature_2m_min[0]),w=Math.round(d.current.windspeed_10m),hu=d.current.relative_humidity_2m;document.getElementById('weather-content').innerHTML=`<div class="weather-main"><span class="weather-icon">${wIcon(c)}</span><div><div class="weather-temp">${t}°</div><div class="weather-desc">${wDesc(c)}</div></div></div><div class="weather-details"><span>↑${hi}° ↓${lo}°</span><span>💨 ${w}mph</span><span>💧 ${hu}%</span></div>`;}catch(e){document.getElementById('weather-content').innerHTML='<div class="news-loading">Weather unavailable</div>';}}
+function wIcon(c){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=48)return'🌫️';if(c<=67)return'🌧️';if(c<=77)return'❄️';if(c<=82)return'🌧️';if(c<=99)return'⛈️';return'🌡️';}
+function wDesc(c){if(c===0)return'Clear sky';if(c<=2)return'Partly cloudy';if(c<=3)return'Overcast';if(c<=48)return'Foggy';if(c<=67)return'Rainy';if(c<=77)return'Snowy';if(c<=82)return'Rain showers';if(c<=99)return'Thunderstorm';return'Unknown';}
+
+let tasks=JSON.parse(localStorage.getItem('bret_tasks')||'[]');
+function saveTasks(){localStorage.setItem('bret_tasks',JSON.stringify(tasks));}
+function renderTasks(){const l=document.getElementById('task-list');if(!tasks.length){l.innerHTML='<div class="no-tasks">No tasks — you\'re all caught up 🎉</div>';return;}l.innerHTML=tasks.map((t,i)=>`<div class="task-item"><div class="task-check ${t.done?'done':''}" onclick="toggleTask(${i})">${t.done?'✓':''}</div><span class="task-text ${t.done?'done':''}">${t.text}</span><span class="task-del" onclick="deleteTask(${i})">×</span></div>`).join('');}
+function addTask(){const i=document.getElementById('task-input'),t=i.value.trim();if(!t)return;tasks.unshift({text:t,done:false});saveTasks();renderTasks();i.value='';}
+function toggleTask(i){tasks[i].done=!tasks[i].done;saveTasks();renderTasks();}
+function deleteTask(i){tasks.splice(i,1);saveTasks();renderTasks();}
+renderTasks();
+
+const cache={};let activeTab='eagles';
+const SOURCES={eagles:{url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.philadelphiaeagles.com%2Frss%2Fnews'},lightning:{url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nhl.com%2Frss%2Fnews.xml%3FteamId%3D14'},manutd:{url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.manutd.com%2Fen%2Fnews%2Frss-feeds%2Ffirst-team-news'}};
+async function loadNews(team){if(cache[team])return cache[team];try{const r=await fetch(SOURCES[team].url);const d=await r.json();if(d.items&&d.items.length){cache[team]=d.items.slice(0,7).map(i=>({title:i.title,url:i.link||i.url,date:i.pubDate?new Date(i.pubDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'' }));return cache[team];}}catch(e)
