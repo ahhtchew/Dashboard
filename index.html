@@ -257,7 +257,7 @@ function showCalConnect(){
 function showCalError(msg){
   document.getElementById('cal-content').innerHTML=`<div class="msg">${msg}</div><button class="cal-btn secondary" onclick="calSignIn()">Retry</button>`;
 }
-function calSignIn(){tokenClient.requestAccessToken();}
+function calSignIn(){tokenClient.requestAccessToken({prompt:''});}
 async function fetchCalEvents(){
   const el=document.getElementById('cal-content');
   el.innerHTML='<div class="msg"><span class="spinner"></span>Loading…</div>';
