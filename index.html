@@ -140,8 +140,8 @@ renderTasks();
 const cache={};let activeTab='eagles';
 const FEED={
   eagles:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.philadelphiaeagles.com%2Frss%2Fnews',
-  lightning:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nhl.com%2Frss%2Fnews.xml%3FteamId%3D14',
-  manutd:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.manutd.com%2Fen%2Fnews%2Frss-feeds%2Ffirst-team-news'
+  lightning:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fnews.google.com%2Frss%2Fsearch%3Fq%3DTampa%2BBay%2BLightning%26hl%3Den-US%26gl%3DUS%26ceid%3DUS%3Aen',
+  manutd:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fnews.google.com%2Frss%2Fsearch%3Fq%3DManchester%2BUnited%2Bfootball%26hl%3Den-US%26gl%3DUS%26ceid%3DUS%3Aen'
 };
 async function loadNews(team){
   if(cache[team])return cache[team];
