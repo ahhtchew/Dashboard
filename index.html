@@ -267,7 +267,7 @@ async function fetchCalEvents(){
     const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=10`,8000,{'Authorization':'Bearer '+calToken});
     const d=await r.json();
     if(d.error){showCalConnect();return;}
-    if(!d.items||d.items.length===0){el.innerHTML='<div class="msg">No upcoming events 🎉</div><button class="cal-btn secondary" onclick="calSignIn()">Refresh</button>';return;}
+    if(!d.items||d.items.length===0){el.innerHTML='<div class="msg">No upcoming events 🎉</div>';return;}
     el.innerHTML=d.items.map(ev=>{
       const start=ev.start.dateTime||ev.start.date;
       const dt=new Date(start);
