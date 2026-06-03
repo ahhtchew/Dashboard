@@ -249,7 +249,7 @@ function calInit(){
     }
   });
   if(calToken&&Date.now()<calExpiry){fetchCalEvents();}
-  else{showCalConnect();}
+  else{tokenClient.requestAccessToken({prompt:calToken?'none':''});}
 }
 function showCalConnect(){
   document.getElementById('cal-content').innerHTML='<button class="cal-btn" onclick="calSignIn()">Connect Google Calendar</button>';
