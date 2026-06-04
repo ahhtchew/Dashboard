@@ -61,7 +61,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cal-time{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:2px;}
 .cal-title{font-weight:500;line-height:1.4;}
 .cal-btn{background:var(--accent);border:none;border-radius:8px;color:white;padding:8px 14px;font-size:13px;cursor:pointer;width:100%;margin-top:4px;}
-.cal-btn.secondary{background:transparent;border:1px solid var(--border);color:var(--muted);margin-top:6px;}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -77,7 +76,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="grid">
   <div class="card full">
     <div class="card-title">💬 Quote of the Day</div>
-    <div id="quote-content"><div class="msg"><span class="spinner"></span>Loading…</div></div>
+    <div id="quote-content"></div>
+  </div>
+  <div class="card full">
+    <div class="card-title">🧠 Fact of the Day</div>
+    <div id="fact-content"><div class="msg"><span class="spinner"></span>Loading…</div></div>
   </div>
   <div class="card">
     <div class="card-title">☀️ Weather · Tampa</div>
@@ -107,7 +110,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="task-list" id="task-list"></div>
   </div>
- 
   <div class="card full">
     <div class="card-title">📰 News</div>
     <div class="news-tabs">
@@ -133,8 +135,8 @@ async function tFetch(url,ms=7000,headers={}){
   try{const r=await fetch(url,{signal:c.signal,headers});clearTimeout(id);return r;}
   catch(e){clearTimeout(id);throw e;}
 }
-async function loadQuote(){
-  const el=document.getElementById('quote-content');
+
+function loadQuote(){
   const quotes=[
     {q:"The secret of getting ahead is getting started.",a:"Mark Twain"},
     {q:"It does not matter how slowly you go as long as you do not stop.",a:"Confucius"},
@@ -158,25 +160,35 @@ async function loadQuote(){
     {q:"In the end, it's not the years in your life that count. It's the life in your years.",a:"Abraham Lincoln"},
     {q:"Never let the fear of striking out keep you from playing the game.",a:"Babe Ruth"},
     {q:"Life is either a daring adventure or nothing at all.",a:"Helen Keller"},
-    {q:"Many of life's failures are people who did not realize how close they were to success when they gave up.",a:"Thomas A. Edison"},
-    {q:"You have brains in your head. You have feet in your shoes. You can steer yourself any direction you choose.",a:"Dr. Seuss"},
+    {q:"Many of life's failures are people who did not realize how close they were to success when they gave up.",a:"Thomas Edison"},
     {q:"If life were predictable it would cease to be life, and be without flavor.",a:"Eleanor Roosevelt"},
     {q:"If you look at what you have in life, you'll always have more.",a:"Oprah Winfrey"},
     {q:"If you want to live a happy life, tie it to a goal, not to people or things.",a:"Albert Einstein"},
-    {q:"Never let the fear of striking out keep you from playing the game.",a:"Babe Ruth"},
-    {q:"Money and success don't change people; they merely amplify what is already there.",a:"Will Smith"},
     {q:"Your time is limited, so don't waste it living someone else's life.",a:"Steve Jobs"},
+    {q:"The mind is everything. What you think you become.",a:"Buddha"},
+    {q:"Strive not to be a success, but rather to be of value.",a:"Albert Einstein"},
+    {q:"I have not failed. I've just found 10,000 ways that won't work.",a:"Thomas Edison"},
   ];
   const today=new Date();
   const idx=(today.getFullYear()*366+today.getMonth()*31+today.getDate())%quotes.length;
   const q=quotes[idx];
-  el.innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${q.q}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${q.a}</div>`;
+  document.getElementById('quote-content').innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${q.q}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${q.a}</div>`;
 }
-async function loadWeather(){ loadQuote();
+
+async function loadFact(){
+  const el=document.getElementById('fact-content');
+  try{
+    const r=await tFetch('https://uselessfacts.jsph.pl/api/v2/facts/random?language=en');
+    const d=await r.json();
+    el.innerHTML=`<div style="font-size:14px;line-height:1.6;color:var(--text);">${d.text}</div>`;
+  }catch(e){el.innerHTML='<div class="msg">Could not load fact — tap ↻ to retry</div>';}
+}
+
+async function loadWeather(){
   const el=document.getElementById('weather-content');
   try{
     const r=await tFetch('https://api.open-meteo.com/v1/forecast?latitude=27.9506&longitude=-82.4572&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=1');
-   
+    const d=await r.json();
     const t=Math.round(d.current.temperature_2m),code=d.current.weathercode;
     const hi=Math.round(d.daily.temperature_2m_max[0]),lo=Math.round(d.daily.temperature_2m_min[0]);
     const w=Math.round(d.current.windspeed_10m),hu=d.current.relative_humidity_2m;
@@ -186,7 +198,6 @@ async function loadWeather(){ loadQuote();
 function wIcon(c){if(c===0)return'☀️';if(c<=2)return'⛅';if(c<=3)return'☁️';if(c<=48)return'🌫️';if(c<=67)return'🌧️';if(c<=77)return'❄️';if(c<=99)return'⛈️';return'🌡️';}
 function wDesc(c){if(c===0)return'Clear sky';if(c<=2)return'Partly cloudy';if(c<=3)return'Overcast';if(c<=48)return'Foggy';if(c<=67)return'Rainy';if(c<=77)return'Snowy';if(c<=99)return'Thunderstorm';return'Unknown';}
 
-// Notifications
 let notifGranted=localStorage.getItem('notif_granted')==='true';
 function initNotif(){
   const bar=document.getElementById('notif-bar');
@@ -212,7 +223,6 @@ function scheduleNotif(text,datetimeStr){
 }
 function fmtDT(s){const d=new Date(s);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
 
-// Tasks
 let tasks=JSON.parse(localStorage.getItem('bret_tasks')||'[]');
 function saveTasks(){localStorage.setItem('bret_tasks',JSON.stringify(tasks));}
 function renderTasks(){
@@ -234,7 +244,6 @@ function deleteTask(i){tasks.splice(i,1);saveTasks();renderTasks();}
 initNotif();
 renderTasks();
 
-// News
 const cache={};let activeTab='eagles';
 const FEED={
   eagles:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.philadelphiaeagles.com%2Frss%2Fnews',
@@ -264,27 +273,20 @@ async function renderNews(team){
   if(!items){el.innerHTML='<div class="msg">Could not load — tap ↻ to retry</div>';return;}
   el.innerHTML=items.map(i=>`<div class="news-item" onclick="window.open('${i.url}','_blank')"><div class="news-title">${i.title}</div>${i.date?`<div class="news-date">${i.date}</div>`:''}</div>`).join('');
 }
-function loadAll(){
 
-  loadWeather();
-  cache.eagles=null;cache.lightning=null;cache.manutd=null;
-  renderNews(activeTab);
-  if(tokenClient)fetchCalEvents();
-}
-
-// Calendar
 const CAL_CLIENT_ID='7876753626-poa6fhjh6h9e08vrhe8lveoe455fthbv.apps.googleusercontent.com';
 const CAL_SCOPE='https://www.googleapis.com/auth/calendar.readonly';
 let calToken=localStorage.getItem('cal_token');
 let calExpiry=parseInt(localStorage.getItem('cal_expiry')||'0');
 let tokenClient;
+
 function calInit(){
   if(typeof google==='undefined'){setTimeout(calInit,500);return;}
   tokenClient=google.accounts.oauth2.initTokenClient({
     client_id:CAL_CLIENT_ID,
     scope:CAL_SCOPE,
     callback:(resp)=>{
-      if(resp.error){showCalError('Auth failed: '+resp.error);return;}
+      if(resp.error){showCalConnect();return;}
       calToken=resp.access_token;
       calExpiry=Date.now()+(resp.expires_in*1000);
       localStorage.setItem('cal_token',calToken);
@@ -298,10 +300,8 @@ function calInit(){
 function showCalConnect(){
   document.getElementById('cal-content').innerHTML='<button class="cal-btn" onclick="calSignIn()">Connect Google Calendar</button>';
 }
-function showCalError(msg){
-  document.getElementById('cal-content').innerHTML=`<div class="msg">${msg}</div><button class="cal-btn secondary" onclick="calSignIn()">Retry</button>`;
-}
 function calSignIn(){tokenClient.requestAccessToken({prompt:''});}
+
 async function fetchCalEvents(){
   const el=document.getElementById('cal-content');
   el.innerHTML='<div class="msg"><span class="spinner"></span>Loading…</div>';
@@ -309,18 +309,17 @@ async function fetchCalEvents(){
     const now=new Date().toISOString();
     const end=new Date(Date.now()+7*24*60*60*1000).toISOString();
     const calIds=['primary','ajdbwb11416%40gmail.com'];
-const allEvents=[];
-for(const id of calIds){
-  try{
-    const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/${id}/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=10`,8000,{'Authorization':'Bearer '+calToken});
-    const d=await r.json();
-    if(d.items)allEvents.push(...d.items);
-  }catch(e){}
-}
-const d={items:allEvents.sort((a,b)=>new Date(a.start.dateTime||a.start.date)-new Date(b.start.dateTime||b.start.date))};
-    if(d.error){showCalConnect();return;}
-    if(!d.items||d.items.length===0){el.innerHTML='<div class="msg">No upcoming events 🎉</div>';return;}
-    el.innerHTML=d.items.map(ev=>{
+    const allEvents=[];
+    for(const id of calIds){
+      try{
+        const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/${id}/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=15`,8000,{'Authorization':'Bearer '+calToken});
+        const d=await r.json();
+        if(d.items)allEvents.push(...d.items);
+      }catch(e){}
+    }
+    if(!allEvents.length){el.innerHTML='<div class="msg">No upcoming events 🎉</div>';return;}
+    allEvents.sort((a,b)=>new Date(a.start.dateTime||a.start.date)-new Date(b.start.dateTime||b.start.date));
+    el.innerHTML=allEvents.slice(0,10).map(ev=>{
       const start=ev.start.dateTime||ev.start.date;
       const dt=new Date(start);
       const timeStr=ev.start.dateTime
@@ -328,10 +327,18 @@ const d={items:allEvents.sort((a,b)=>new Date(a.start.dateTime||a.start.date)-ne
         :dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       return `<div class="cal-event"><div class="cal-time">${timeStr}</div><div class="cal-title">${ev.summary||'(No title)'}</div></div>`;
     }).join('');
-  }catch(e){showCalError('Could not load — tap Retry');}
+  }catch(e){showCalConnect();}
 }
+
+function loadAll(){
+  loadQuote();loadFact();loadWeather();
+  cache.eagles=null;cache.lightning=null;cache.manutd=null;
+  renderNews(activeTab);
+  if(calToken&&Date.now()<calExpiry)fetchCalEvents();
+}
+
 window.addEventListener('load',calInit);
-loadWeather();
+loadQuote();loadFact();loadWeather();
 renderNews('eagles');
 </script>
 </body>
