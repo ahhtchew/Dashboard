@@ -332,7 +332,7 @@ async function fetchCalEvents(){
         :dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       return `<div class="cal-event"><div class="cal-time">${timeStr}</div><div class="cal-title">${ev.summary||'(No title)'}</div></div>`;
     }).join('');
-  }catch(e){showCalConnect();}
+}catch(e){el.innerHTML='<div class="msg">Error: '+e.message+'</div>';}
 }
 
 function loadAll(){
