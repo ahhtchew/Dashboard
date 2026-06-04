@@ -294,7 +294,8 @@ function calInit(){
       fetchCalEvents();
     }
   });
-  if(calToken&&Date.now()<calExpiry){fetchCalEvents();}
+  calToken=null;localStorage.removeItem('cal_token');
+if(calToken&&Date.now()<calExpiry){fetchCalEvents();}
   else{tokenClient.requestAccessToken({prompt:calToken?'none':''});}
 }
 function showCalConnect(){
