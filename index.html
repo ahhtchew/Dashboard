@@ -141,7 +141,7 @@ async function loadQuote(){
     el.innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${d.content}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${d.author}</div>`;
   }catch(e){el.innerHTML='<div class="msg">Could not load quote</div>';}
 }
-async function loadWeather(){
+async function loadWeather(){ loadQuote();
   const el=document.getElementById('weather-content');
   try{
     const r=await tFetch('https://api.open-meteo.com/v1/forecast?latitude=27.9506&longitude=-82.4572&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=1');
