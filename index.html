@@ -135,11 +135,42 @@ async function tFetch(url,ms=7000,headers={}){
 }
 async function loadQuote(){
   const el=document.getElementById('quote-content');
-  try{
-    const r=await tFetch('https://zenquotes.io/api/random');
-    const d=await r.json();
-    el.innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${d[0].q}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${d[0].a}</div>`;
-  }catch(e){el.innerHTML='<div class="msg">Could not load quote</div>';}
+  const quotes=[
+    {q:"The secret of getting ahead is getting started.",a:"Mark Twain"},
+    {q:"It does not matter how slowly you go as long as you do not stop.",a:"Confucius"},
+    {q:"Success is not final, failure is not fatal: it is the courage to continue that counts.",a:"Winston Churchill"},
+    {q:"Believe you can and you're halfway there.",a:"Theodore Roosevelt"},
+    {q:"The only way to do great work is to love what you do.",a:"Steve Jobs"},
+    {q:"In the middle of every difficulty lies opportunity.",a:"Albert Einstein"},
+    {q:"It always seems impossible until it's done.",a:"Nelson Mandela"},
+    {q:"Don't watch the clock; do what it does. Keep going.",a:"Sam Levenson"},
+    {q:"The future belongs to those who believe in the beauty of their dreams.",a:"Eleanor Roosevelt"},
+    {q:"You miss 100% of the shots you don't take.",a:"Wayne Gretzky"},
+    {q:"Whether you think you can or you think you can't, you're right.",a:"Henry Ford"},
+    {q:"The best time to plant a tree was 20 years ago. The second best time is now.",a:"Chinese Proverb"},
+    {q:"An unexamined life is not worth living.",a:"Socrates"},
+    {q:"Spread love everywhere you go.",a:"Mother Teresa"},
+    {q:"When you reach the end of your rope, tie a knot in it and hang on.",a:"Franklin D. Roosevelt"},
+    {q:"Always remember that you are absolutely unique. Just like everyone else.",a:"Margaret Mead"},
+    {q:"Do not go where the path may lead, go instead where there is no path and leave a trail.",a:"Ralph Waldo Emerson"},
+    {q:"You will face many defeats in life, but never let yourself be defeated.",a:"Maya Angelou"},
+    {q:"The greatest glory in living lies not in never falling, but in rising every time we fall.",a:"Nelson Mandela"},
+    {q:"In the end, it's not the years in your life that count. It's the life in your years.",a:"Abraham Lincoln"},
+    {q:"Never let the fear of striking out keep you from playing the game.",a:"Babe Ruth"},
+    {q:"Life is either a daring adventure or nothing at all.",a:"Helen Keller"},
+    {q:"Many of life's failures are people who did not realize how close they were to success when they gave up.",a:"Thomas A. Edison"},
+    {q:"You have brains in your head. You have feet in your shoes. You can steer yourself any direction you choose.",a:"Dr. Seuss"},
+    {q:"If life were predictable it would cease to be life, and be without flavor.",a:"Eleanor Roosevelt"},
+    {q:"If you look at what you have in life, you'll always have more.",a:"Oprah Winfrey"},
+    {q:"If you want to live a happy life, tie it to a goal, not to people or things.",a:"Albert Einstein"},
+    {q:"Never let the fear of striking out keep you from playing the game.",a:"Babe Ruth"},
+    {q:"Money and success don't change people; they merely amplify what is already there.",a:"Will Smith"},
+    {q:"Your time is limited, so don't waste it living someone else's life.",a:"Steve Jobs"},
+  ];
+  const today=new Date();
+  const idx=(today.getFullYear()*366+today.getMonth()*31+today.getDate())%quotes.length;
+  const q=quotes[idx];
+  el.innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${q.q}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${q.a}</div>`;
 }
 async function loadWeather(){ loadQuote();
   const el=document.getElementById('weather-content');
