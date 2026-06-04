@@ -308,11 +308,15 @@ async function fetchCalEvents(){
   try{
     const now=new Date().toISOString();
     const end=new Date(Date.now()+7*24*60*60*1000).toISOString();
-    const calIds=['primary','ajdbwb11416@gmail.com'];
+    // Get all calendars first
+    const calListR=await tFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',8000,{'Authorization':'Bearer '+calToken});
+    const calList=await calListR.json();
+    if(calList.error){showCalConnect();return;}
     const allEvents=[];
-    for(const id of calIds){
+    for(const cal of calList.items){
       try{
-        const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/${id}/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=15`,8000,{'Authorization':'Bearer '+calToken});
+        const encId=encodeURIComponent(cal.id);
+        const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/${encId}/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=15`,8000,{'Authorization':'Bearer '+calToken});
         const d=await r.json();
         if(d.items)allEvents.push(...d.items);
       }catch(e){}
