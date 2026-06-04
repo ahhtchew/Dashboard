@@ -308,8 +308,16 @@ async function fetchCalEvents(){
   try{
     const now=new Date().toISOString();
     const end=new Date(Date.now()+7*24*60*60*1000).toISOString();
-    const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=10`,8000,{'Authorization':'Bearer '+calToken});
+    const calIds=['primary','ajdbwb11416%40gmail.com'];
+const allEvents=[];
+for(const id of calIds){
+  try{
+    const r=await tFetch(`https://www.googleapis.com/calendar/v3/calendars/${id}/events?timeMin=${now}&timeMax=${end}&singleEvents=true&orderBy=startTime&maxResults=10`,8000,{'Authorization':'Bearer '+calToken});
     const d=await r.json();
+    if(d.items)allEvents.push(...d.items);
+  }catch(e){}
+}
+const d={items:allEvents.sort((a,b)=>new Date(a.start.dateTime||a.start.date)-new Date(b.start.dateTime||b.start.date))};
     if(d.error){showCalConnect();return;}
     if(!d.items||d.items.length===0){el.innerHTML='<div class="msg">No upcoming events 🎉</div>';return;}
     el.innerHTML=d.items.map(ev=>{
