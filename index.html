@@ -275,7 +275,7 @@ async function renderNews(team){
 }
 
 const CAL_CLIENT_ID='7876753626-poa6fhjh6h9e08vrhe8lveoe455fthbv.apps.googleusercontent.com';
-const CAL_SCOPE='https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.calendarlist.readonly';
+const CAL_SCOPE='https://www.googleapis.com/auth/calendar.readonly';
 let calToken=localStorage.getItem('cal_token');
 let calExpiry=parseInt(localStorage.getItem('cal_expiry')||'0');
 let tokenClient;
@@ -294,11 +294,8 @@ function calInit(){
       fetchCalEvents();
     }
   });
-  calToken=null;localStorage.removeItem('cal_token');
-localStorage.removeItem('cal_token');
-  localStorage.removeItem('cal_expiry');
-  calToken=null;
-  tokenClient.requestAccessToken({prompt:''});
+  if(calToken&&Date.now()<calExpiry){fetchCalEvents();}
+  else{showCalConnect();}
 }
 function showCalConnect(){
   document.getElementById('cal-content').innerHTML='<button class="cal-btn" onclick="calSignIn()">Connect Google Calendar</button>';
@@ -311,7 +308,6 @@ async function fetchCalEvents(){
   try{
     const now=new Date().toISOString();
     const end=new Date(Date.now()+7*24*60*60*1000).toISOString();
-    // Get all calendars first
     const calListR=await tFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',8000,{'Authorization':'Bearer '+calToken});
     const calList=await calListR.json();
     if(calList.error){showCalConnect();return;}
@@ -334,7 +330,7 @@ async function fetchCalEvents(){
         :dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       return `<div class="cal-event"><div class="cal-time">${timeStr}</div><div class="cal-title">${ev.summary||'(No title)'}</div></div>`;
     }).join('');
-}catch(e){el.innerHTML='<div class="msg">Error: '+e.message+'</div>';}
+  }catch(e){showCalConnect();}
 }
 
 function loadAll(){
@@ -342,6 +338,7 @@ function loadAll(){
   cache.eagles=null;cache.lightning=null;cache.manutd=null;
   renderNews(activeTab);
   if(calToken&&Date.now()<calExpiry)fetchCalEvents();
+  else showCalConnect();
 }
 
 window.addEventListener('load',calInit);
