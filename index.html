@@ -307,7 +307,7 @@ async function fetchCalEvents(){
   el.innerHTML='<div class="msg"><span class="spinner"></span>Loading…</div>';
   try{
     const now=new Date().toISOString();
-    const end=new Date(Date.now()+7*24*60*60*1000).toISOString();
+    const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);tomorrow.setHours(23,59,59,999);const end=tomorrow.toISOString();
     const calListR=await tFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList',8000,{'Authorization':'Bearer '+calToken});
     const calList=await calListR.json();
     if(calList.error){showCalConnect();return;}
