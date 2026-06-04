@@ -295,8 +295,10 @@ function calInit(){
     }
   });
   calToken=null;localStorage.removeItem('cal_token');
-if(calToken&&Date.now()<calExpiry){fetchCalEvents();}
-  else{tokenClient.requestAccessToken({prompt:calToken?'none':''});}
+localStorage.removeItem('cal_token');
+  localStorage.removeItem('cal_expiry');
+  calToken=null;
+  tokenClient.requestAccessToken({prompt:''});
 }
 function showCalConnect(){
   document.getElementById('cal-content').innerHTML='<button class="cal-btn" onclick="calSignIn()">Connect Google Calendar</button>';
