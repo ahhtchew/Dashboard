@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><title>Connect Bank</title>
+<style>body{font-family:sans-serif;padding:40px;background:#0f172a;color:#f1f5f9;}button{background:#3b82f6;color:white;border:none;padding:12px 24px;border-radius:8px;font-size:16px;cursor:pointer;}#result{margin-top:20px;padding:16px;background:#1e293b;border-radius:8px;word-break:break-all;display:none;}</style>
+</head>
+<body>
+<h2>Connect Your Bank</h2>
+<button onclick="openPlaid()">Connect Bank Account</button>
+<div id="result"></div>
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script>
+const LINK_TOKEN = 'link-sandbox-bebe63f2-ff2e-442c-ac6f-8abbfef23cfb';
+function openPlaid(){
+  const handler = Plaid.create({
+    token: LINK_TOKEN,
+    onSuccess: (public_token, metadata) => {
+      document.getElementById('result').style.display='block';
+      document.getElementById('result').innerHTML = '<strong>Public Token:</strong><br>' + public_token;
+    },
+    onExit: (err) => { if(err) alert(JSON.stringify(err)); }
+  });
+  handler.open();
+}
+</script>
+</body>
+</html>
