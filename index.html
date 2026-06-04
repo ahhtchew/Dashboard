@@ -224,7 +224,7 @@ async function renderNews(team){
 }
 function loadAll(){
 
-  loadWeather();loadBalances();
+  loadWeather();
   cache.eagles=null;cache.lightning=null;cache.manutd=null;
   renderNews(activeTab);
   if(tokenClient)fetchCalEvents();
