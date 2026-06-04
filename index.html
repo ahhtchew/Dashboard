@@ -223,19 +223,7 @@ async function renderNews(team){
   el.innerHTML=items.map(i=>`<div class="news-item" onclick="window.open('${i.url}','_blank')"><div class="news-title">${i.title}</div>${i.date?`<div class="news-date">${i.date}</div>`:''}</div>`).join('');
 }
 function loadAll(){
-async function loadBalances(){
-  const el=document.getElementById('balances-content');
-  try{
-    const r=await tFetch('https://script.google.com/macros/s/AKfycbyCIYkSBZ4AMDrsxkIbOjxmq6yZWOxyfMvoysNBXek4ThVlvxOsprg7QWgmLkj2lLYizA/exec');
-    const data=await r.json();
-    if(!data.length){el.innerHTML='<div class="msg">No accounts found</div>';return;}
-    el.innerHTML=data.map(a=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
-        <span>${a.account}</span>
-        <span style="font-weight:700;color:var(--green);">$${parseFloat(a.balance).toLocaleString('en-US',{minimumFractionDigits:2})}</span>
-      </div>`).join('')+`<div style="font-size:11px;color:var(--muted);margin-top:8px;">Updated: ${data[0].updated}</div>`;
-  }catch(e){el.innerHTML='<div class="msg">Could not load balances</div>';}
-}
+
   loadWeather();loadBalances();
   cache.eagles=null;cache.lightning=null;cache.manutd=null;
   renderNews(activeTab);
