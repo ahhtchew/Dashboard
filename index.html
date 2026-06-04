@@ -136,9 +136,9 @@ async function tFetch(url,ms=7000,headers={}){
 async function loadQuote(){
   const el=document.getElementById('quote-content');
   try{
-    const r=await tFetch('https://api.quotable.io/random');
+    const r=await tFetch('https://zenquotes.io/api/random');
     const d=await r.json();
-    el.innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${d.content}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${d.author}</div>`;
+    el.innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${d[0].q}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${d[0].a}</div>`;
   }catch(e){el.innerHTML='<div class="msg">Could not load quote</div>';}
 }
 async function loadWeather(){ loadQuote();
