@@ -133,7 +133,14 @@ async function tFetch(url,ms=7000,headers={}){
   try{const r=await fetch(url,{signal:c.signal,headers});clearTimeout(id);return r;}
   catch(e){clearTimeout(id);throw e;}
 }
-
+async function loadQuote(){
+  const el=document.getElementById('quote-content');
+  try{
+    const r=await tFetch('https://api.quotable.io/random');
+    const d=await r.json();
+    el.innerHTML=`<div style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text);">"${d.content}"</div><div style="font-size:12px;color:var(--accent);margin-top:8px;">— ${d.author}</div>`;
+  }catch(e){el.innerHTML='<div class="msg">Could not load quote</div>';}
+}
 async function loadWeather(){
   const el=document.getElementById('weather-content');
   try{
