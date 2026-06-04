@@ -176,7 +176,7 @@ async function loadWeather(){ loadQuote();
   const el=document.getElementById('weather-content');
   try{
     const r=await tFetch('https://api.open-meteo.com/v1/forecast?latitude=27.9506&longitude=-82.4572&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=1');
-    const d=await r.json();
+   
     const t=Math.round(d.current.temperature_2m),code=d.current.weathercode;
     const hi=Math.round(d.daily.temperature_2m_max[0]),lo=Math.round(d.daily.temperature_2m_min[0]);
     const w=Math.round(d.current.windspeed_10m),hu=d.current.relative_humidity_2m;
